@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 69ac5b5b7e95c4242b19ce75a60a7e3f
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Prefabs/Blocks/Safezone/Door.prefab
+  uploadId: 598486

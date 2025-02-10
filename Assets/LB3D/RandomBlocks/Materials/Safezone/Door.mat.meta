@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fd109434fc2067a4fb48064e964d04a2
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Safezone/Door.mat
+  uploadId: 598486

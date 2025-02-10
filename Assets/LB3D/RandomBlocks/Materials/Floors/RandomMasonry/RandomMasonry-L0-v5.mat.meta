@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c17b83ec7a41dda45b1e671b5cd3832d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Floors/RandomMasonry/RandomMasonry-L0-v5.mat
+  uploadId: 598486

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bd77bab673466f948a58dea44a5b6b4b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Blocks/ManyVertical/L1/ManyVertical-L1-v5.mat
+  uploadId: 598486

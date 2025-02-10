@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a6d99a90a18ceaa4988beada45ccfc8a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Blocks/Default/Block-Old-Mossy/Old-Mossy-V8.mat
+  uploadId: 598486

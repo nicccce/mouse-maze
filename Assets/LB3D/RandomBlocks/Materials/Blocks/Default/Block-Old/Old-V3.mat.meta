@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 82d48f0c1f6859e4f8017f32f3ecff1f
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Blocks/Default/Block-Old/Old-V3.mat
+  uploadId: 598486

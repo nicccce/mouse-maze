@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 25df4e8b22f713e4cb5325a29dc1aa2a
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Blocks/CastBlocks/L3/CastBlocks-L3-v2.mat
+  uploadId: 598486

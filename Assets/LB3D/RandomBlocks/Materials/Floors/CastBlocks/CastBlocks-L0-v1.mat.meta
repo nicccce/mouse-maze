@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7af59c113ad74d24f856d04a1b0e382e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 259878
+  packageName: Random Blocks
+  packageVersion: 1.0
+  assetPath: Assets/LB3D/RandomBlocks/Materials/Floors/CastBlocks/CastBlocks-L0-v1.mat
+  uploadId: 598486
