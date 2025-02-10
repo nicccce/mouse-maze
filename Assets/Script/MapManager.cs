@@ -41,7 +41,7 @@ public class MapManager : MonoBehaviour
     {
         switch (gameManager.currentState)
         {
-            case GameState.Revise:
+            case GameState.Edit:
                 changeBlock();
                 break;
         }
