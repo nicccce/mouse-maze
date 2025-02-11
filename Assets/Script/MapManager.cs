@@ -3,6 +3,7 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using System;
 
 public class MapManager : MonoBehaviour
 {
@@ -25,6 +26,8 @@ public class MapManager : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main; // 初始化时缓存主摄像机
+        tempGrid = new bool[gridSize * gridSize];   //初始化临时数组
+
         // 获取存储路径
         mapsDirectory = Path.Combine(Application.persistentDataPath, "maps");
         defaultMazePath = Path.Combine(mapsDirectory, "default.maze");
@@ -38,6 +41,11 @@ public class MapManager : MonoBehaviour
         GenerateBlock();
 
         //生成迷宫
+        LoadMaze();
+    }
+
+    public void ResetMap()
+    {
         LoadMaze();
     }
 
@@ -257,6 +265,7 @@ public class MapManager : MonoBehaviour
         }
     }
 
+    //放置迷宫
     void GenerateBlock()
     {
         for (int x = 0; x < gridSize; x++)
@@ -290,7 +299,7 @@ public class MapManager : MonoBehaviour
 
         block.name = blockName(x, z);
 
-        block.SetActive(false); // 根据迷宫数据决定是否激活
+        block.SetActive(false); // 默认为非激活状态
         blockDictionary[(x,z)] = block;
         block.transform.parent = this.transform;
     }
@@ -304,6 +313,7 @@ public class MapManager : MonoBehaviour
     void LoadMaze()
     {
         MazeData currentMazeData = mazeList[currentMaze];
+        Array.Copy(currentMazeData.grid, tempGrid, tempGrid.Length);
         for (int x = 0; x < currentMazeData.size; x++)
         {
             for (int z = 0; z < currentMazeData.size; z++)
@@ -367,7 +377,7 @@ public class MapManager : MonoBehaviour
         }
         currentMaze = mazeDropDown.value;
         LoadMaze();
-        RefreshMazeManagePanel ();
+        RefreshMazeManagePanel();
     }
 
     public void OnNewButtionClicked()
@@ -387,6 +397,7 @@ public class MapManager : MonoBehaviour
         RefreshMazeManagePanel();
     }
 
+
     Vector3 GetMouseWorldPosition()
     {
         Vector3 mousePos = Input.mousePosition;
@@ -394,23 +405,37 @@ public class MapManager : MonoBehaviour
         return mainCamera.ScreenToWorldPoint(mousePos);
     }
 
+    private bool[] tempGrid;
+
     void changeBlock()
     {
         if (Input.GetMouseButtonDown(0)) // 鼠标左键点击
         {
-            //获取鼠标点击的迷宫方块
+            // 获取鼠标点击的迷宫方块
             Vector3 worldPos = GetMouseWorldPosition();
-            int x = Mathf.FloorToInt(worldPos.x)+8;
-            int z = Mathf.FloorToInt(worldPos.z)+8;
-            if(x < 0  || z < 0 || x > 15 || z > 15 || (x == 7 && z == 8) || (x == 15 && z == 0))
+            int x = Mathf.FloorToInt(worldPos.x) + 8;
+            int z = Mathf.FloorToInt(worldPos.z) + 8;
+
+            // 边界检查
+            if (x < 0 || z < 0 || x > 15 || z > 15 || (x == 7 && z == 8) || (x == 15 && z == 0))
             {
                 return;
             }
+
+            // 切换 tempGrid 的状态
+            int index = x * gridSize + z;
+            tempGrid[index] = !tempGrid[index];
+
+            // 更新 UI 预览
             GameObject selectedBlock = blockDictionary[(x, z)];
-
-            selectedBlock.SetActive(!selectedBlock.activeSelf);
-            mazeList[currentMaze].SetCell(x, z, selectedBlock.activeSelf);
-
+            selectedBlock.SetActive(tempGrid[index]);
         }
+    }
+
+    // 确认修改，将 tempGrid 写入 mazeList[currentMaze]
+    public void SaveChanges()
+    {
+        Array.Copy(tempGrid, mazeList[currentMaze].grid, tempGrid.Length);
+        SaveMazeData(mazeList[currentMaze]);
     }
 }

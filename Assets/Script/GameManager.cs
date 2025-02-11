@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     public GameObject PlayPanel;
     public GameObject ManagePanel;
     public MapManager mapManager;
+    public GameObject EditPanel;
 
     private Text ModText;
 
@@ -47,7 +48,7 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
-        ClearPanel();
+        ResetPanel();
         PlayPanel.SetActive(true);
         currentState = GameState.Play;
         ModText.text = "游戏中";
@@ -59,10 +60,11 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
-        ClearPanel();
+        ResetPanel();
         ManagePanel.SetActive(true);
         mapManager.RefreshMazeManagePanel();
         ModText.text = "管理迷宫";
+        currentState = GameState.Manage;
     }
 
     public void ExitClicked()
@@ -70,10 +72,48 @@ public class GameManager : MonoBehaviour
         Application.Quit();
     }
 
-    void ClearPanel()
+    public void OnEditButtonClicked()
+    {
+        ResetPanel();
+        EditPanel.SetActive(true);
+        ModText.text = "编辑迷宫";
+        currentState = GameState.Edit;
+    }
+
+    public void BackToManagePanel()
+    {
+        ResetPanel();
+        ManagePanel.SetActive(true);
+        mapManager.RefreshMazeManagePanel();
+        ModText.text = "管理迷宫";
+        currentState = GameState.Manage;
+    }
+
+    public void OnSaveButtonClicked()
+    {
+        mapManager.SaveChanges();
+        ResetPanel();
+        ManagePanel.SetActive(true);
+        mapManager.RefreshMazeManagePanel();
+        ModText.text = "管理迷宫";
+        currentState = GameState.Manage;
+    }
+
+    public void OnAbortButtonClicked()
+    {
+        ResetPanel();
+        ManagePanel.SetActive(true);
+        mapManager.RefreshMazeManagePanel();
+        ModText.text = "管理迷宫";
+        currentState = GameState.Manage;
+    }
+
+    void ResetPanel()
     {
         PlayPanel.SetActive(false);
         ManagePanel.SetActive(false);
+        EditPanel.SetActive(false);
+        mapManager.ResetMap();
     }
 
 
