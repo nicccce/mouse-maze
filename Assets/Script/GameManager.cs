@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 // 游戏状态枚举
 public enum GameState
@@ -20,8 +21,7 @@ public class GameManager : MonoBehaviour
     public GameObject Canvas;
     public GameObject PlayPanel;
     public GameObject ManagePanel;
-
-
+    public MapManager mapManager;
 
     private Text ModText;
 
@@ -51,7 +51,6 @@ public class GameManager : MonoBehaviour
         PlayPanel.SetActive(true);
         currentState = GameState.Play;
         ModText.text = "游戏中";
-        Debug.Log("6666");
     }
 
     public void OnManageButtonClicked()
@@ -62,7 +61,7 @@ public class GameManager : MonoBehaviour
         }
         ClearPanel();
         ManagePanel.SetActive(true);
-        currentState = GameState.Manage;
+        mapManager.RefreshMazeManagePanel();
         ModText.text = "管理迷宫";
     }
 

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class MapManager : MonoBehaviour
 {
@@ -9,16 +10,21 @@ public class MapManager : MonoBehaviour
     public List<GameObject> blockPrefabs; // 方块预制体列表
     public int gridSize = 16; // 地图大小
     public GameManager gameManager;
+    
+    //管理迷宫界面
     public Dropdown mazeDropDown;
+    public InputField mazeNameTextField;
 
-    private Dictionary<string, GameObject> blockDictionary = new Dictionary<string, GameObject>(); //迷宫方块字典
+    private Dictionary<(int, int), GameObject> blockDictionary = new Dictionary<(int, int), GameObject>(); //迷宫方块字典
     private string mapsDirectory;   //迷宫文件目录
     private List<MazeData> mazeList = new List<MazeData>(); //迷宫列表
     private string defaultMazePath; //默认迷宫文件名
     private int currentMaze;
+    private Camera mainCamera; // 缓存主摄像机
 
     void Start()
     {
+        mainCamera = Camera.main; // 初始化时缓存主摄像机
         // 获取存储路径
         mapsDirectory = Path.Combine(Application.persistentDataPath, "maps");
         defaultMazePath = Path.Combine(mapsDirectory, "default.maze");
@@ -33,8 +39,6 @@ public class MapManager : MonoBehaviour
 
         //生成迷宫
         LoadMaze();
-
-        RefreshMazeDropDown();
     }
 
     void Update()
@@ -52,6 +56,7 @@ public class MapManager : MonoBehaviour
     {
         public string name;
         public int size;
+        public string fileName;
         public bool[] grid; // 线性存储 16x16 迷宫矩阵
 
         // 初始化方法
@@ -98,6 +103,7 @@ public class MapManager : MonoBehaviour
             string file = mazeFiles[i];
             string json = File.ReadAllText(file);
             MazeData mazeData = JsonUtility.FromJson<MazeData>(json);
+            mazeData.fileName = Path.GetFileName(file);
             mazeList.Add(mazeData);
 
             // 匹配文件名
@@ -118,6 +124,92 @@ public class MapManager : MonoBehaviour
         string json = JsonUtility.ToJson(defaultMaze, true);
         File.WriteAllText(defaultMazePath, json);
     }
+
+    MazeData CreateNewMaze()
+    {
+        // 基础迷宫名称
+        string baseName = "Mouse_Maze";
+        string newMazeName = baseName;
+        string newMazePath;
+
+        int counter = 1;
+
+        // 确保 Maps 目录存在
+        if (!Directory.Exists(mapsDirectory))
+        {
+            Directory.CreateDirectory(mapsDirectory);
+        }
+
+        // 检查是否已有相同名称的文件
+        do
+        {
+            newMazePath = Path.Combine(mapsDirectory, newMazeName + ".maze");
+
+            if (File.Exists(newMazePath))
+            {
+                newMazeName = $"{baseName}_{counter++}"; // 递增编号
+            }
+            else
+            {
+                break;
+            }
+        } while (true);
+
+        // 创建新的迷宫数据
+        MazeData newMaze = new MazeData();
+        newMaze.Initialize(gridSize);
+        newMaze.name = newMazeName; // 赋予唯一名称
+
+        // 序列化并写入文件
+        string json = JsonUtility.ToJson(newMaze, true);
+        File.WriteAllText(newMazePath, json);
+
+        return newMaze;
+    }
+
+    void SaveMazeData(MazeData mazeData)
+    {
+        if (mazeData == null || string.IsNullOrEmpty(mazeData.fileName))
+        {
+            return;
+        }
+
+        // 生成完整路径
+        string filePath = Path.Combine(mapsDirectory, mazeData.fileName);
+
+        // 序列化为 JSON
+        string json = JsonUtility.ToJson(mazeData, true);
+
+        // 写入文件
+        File.WriteAllText(filePath, json);
+    }
+
+    void DeleteMazeData(MazeData mazeData)
+    {
+        if (mazeData == null || string.IsNullOrEmpty(mazeData.fileName))
+        {
+            return;
+        }
+
+        if (mazeData.fileName == "default.maze")
+        {
+            mazeData.name = "default";
+            mazeData.Initialize(gridSize);
+            SaveMazeData(mazeData);
+            return;
+        }
+
+        // 生成完整路径
+        string filePath = Path.Combine(mapsDirectory, mazeData.fileName);
+
+        // 检查文件是否存在
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+            return;
+        }
+    }
+
 
     // 生成地板
     void GenerateFloor()
@@ -196,11 +288,10 @@ public class MapManager : MonoBehaviour
         Vector3 originalSize = block.GetComponent<Renderer>().bounds.size;
         block.transform.localScale = new Vector3(1f / originalSize.x, 1f / originalSize.y, 1f / originalSize.z);
 
-        string name = blockName(x, z);
-        block.name = name;
+        block.name = blockName(x, z);
 
         block.SetActive(false); // 根据迷宫数据决定是否激活
-        blockDictionary[name] = block;
+        blockDictionary[(x,z)] = block;
         block.transform.parent = this.transform;
     }
 
@@ -212,23 +303,24 @@ public class MapManager : MonoBehaviour
     //放置迷宫
     void LoadMaze()
     {
-        for (int x = 0; x < gridSize; x++)
+        MazeData currentMazeData = mazeList[currentMaze];
+        for (int x = 0; x < currentMazeData.size; x++)
         {
-            for (int z = 0; z < gridSize; z++)
+            for (int z = 0; z < currentMazeData.size; z++)
             {
-                if (mazeList[currentMaze].GetCell(x, z))
+                if (currentMazeData.GetCell(x, z))
                 {
-                    blockDictionary[blockName(x, z)].SetActive(true);
+                    blockDictionary[(x, z)].SetActive(true);
                 }
                 else
                 {
-                    blockDictionary[blockName(x, z)].SetActive(false);
+                    blockDictionary[(x, z)].SetActive(false);
                 }
             }
         }
     }
 
-    void RefreshMazeDropDown()
+    public void RefreshMazeManagePanel()
     {
         // 清空当前选项
         mazeDropDown.ClearOptions();
@@ -242,14 +334,64 @@ public class MapManager : MonoBehaviour
         mazeDropDown.AddOptions(options);
 
         mazeDropDown.value = currentMaze;
-    } 
+
+        mazeNameTextField.text = mazeList[currentMaze].name;
+
+        gameManager.currentState = GameState.Manage;
+    }
+
+    public void OnMazeNameTextFieldChanged()
+    {
+        // 避免递归调用
+        if (mazeNameTextField.text == mazeList[currentMaze].name)
+        {
+            return;
+        }
+        if (mazeNameTextField.text == "")
+        {
+            mazeNameTextField.text = mazeList[currentMaze].name;
+            return;
+        }
+
+        mazeList[currentMaze].name = mazeNameTextField.text;
+        SaveMazeData(mazeList[currentMaze]);
+        RefreshMazeManagePanel();
+    }
+
+    public void OnMazeDropDownChanged()
+    {
+        // 避免递归调用
+        if (mazeDropDown.value == currentMaze)
+        {
+            return;
+        }
+        currentMaze = mazeDropDown.value;
+        LoadMaze();
+        RefreshMazeManagePanel ();
+    }
+
+    public void OnNewButtionClicked()
+    {
+        MazeData newMaze = CreateNewMaze();
+        mazeList.Add(newMaze);
+        currentMaze = mazeList.Count - 1;
+        LoadMaze ();
+        RefreshMazeManagePanel();
+    }
+
+    public void DeleteCurrentMaze()
+    {
+        DeleteMazeData(mazeList[currentMaze]);
+        LoadAllMazes();
+        LoadMaze();
+        RefreshMazeManagePanel();
+    }
+
     Vector3 GetMouseWorldPosition()
     {
         Vector3 mousePos = Input.mousePosition;
-        mousePos.z = Mathf.Abs(Camera.main.transform.position.y); // y轴高度
-
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
-        return new Vector3(worldPos.x, 0, worldPos.z); // 只返回 XZ 平面坐标
+        mousePos.z = Mathf.Abs(mainCamera.transform.position.y); // y轴高度
+        return mainCamera.ScreenToWorldPoint(mousePos);
     }
 
     void changeBlock()
@@ -264,7 +406,7 @@ public class MapManager : MonoBehaviour
             {
                 return;
             }
-            GameObject selectedBlock = blockDictionary[blockName(x, z)];
+            GameObject selectedBlock = blockDictionary[(x, z)];
 
             selectedBlock.SetActive(!selectedBlock.activeSelf);
             mazeList[currentMaze].SetCell(x, z, selectedBlock.activeSelf);
