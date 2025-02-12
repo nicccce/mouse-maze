@@ -116,6 +116,4 @@ public class GameManager : MonoBehaviour
         mapManager.ResetMap();
     }
 
-
-
 }

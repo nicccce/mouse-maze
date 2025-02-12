@@ -5606,7 +5606,7 @@ MonoBehaviour:
   - {fileID: 5706206158713362103, guid: 935104f72f8805446a9c60f10646861f, type: 3}
   - {fileID: 4274296954087585791, guid: 047ab5fa902980e478ea59ff0cff2487, type: 3}
   - {fileID: 90259537502126795, guid: e72b1575429246341847d7253b270a56, type: 3}
-  gridSize: 16
+  gridSize: 32
   gameManager: {fileID: 1581803225}
   mazeDropDown: {fileID: 1580643818}
   mazeNameTextField: {fileID: 1236033428}
