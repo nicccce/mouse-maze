@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.UIElements;
 using System;
 using static MapManager;
+using System.Drawing;
 
 public class MapManager : MonoBehaviour
 {
@@ -27,7 +28,7 @@ public class MapManager : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main; // 初始化时缓存主摄像机
-        tempGrid = new bool[gridSize * gridSize];   //初始化临时数组
+        tempGrid = new long[gridSize];   //初始化临时数组
 
         // 获取存储路径
         fileManager = new FileManager(Path.Combine(Application.persistentDataPath, "maps"), gridSize);
@@ -107,7 +108,7 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    //放置迷宫
+    //初始化迷宫方块
     void GenerateBlock()
     {
         for (int x = 0; x < gridSize; x++)
@@ -130,11 +131,17 @@ public class MapManager : MonoBehaviour
         block.transform.parent = this.transform;
     }
 
+    // 将矩阵下标 (x, z) 转换为世界坐标
+    Vector3 GridToWorldPosition(int x, int z, int size)
+    {
+        return new Vector3(-size / 2 + x + 0.5f, 0.5f, -size / 2 + z + 0.5f);
+    }
+
     // 放置方块
     void PlaceBlock(int x, int z)
     {
         GameObject prefab = blockPrefabs[UnityEngine.Random.Range(0, blockPrefabs.Count)];
-        GameObject block = Instantiate(prefab, new Vector3(-gridSize / 2 + x + 0.5f, 0.5f, -gridSize / 2 + z + 0.5f), Quaternion.identity);
+        GameObject block = Instantiate(prefab, GridToWorldPosition(x, z, gridSize), Quaternion.identity);
 
         Vector3 originalSize = block.GetComponent<Renderer>().bounds.size;
         block.transform.localScale = new Vector3(1f / originalSize.x, 1f / originalSize.y, 1f / originalSize.z);
@@ -242,7 +249,26 @@ public class MapManager : MonoBehaviour
         return mainCamera.ScreenToWorldPoint(mousePos);
     }
 
-    private bool[] tempGrid;
+    // 临时的用于修改的地图
+    private long[] tempGrid;
+
+    // 获取临时地图的值
+    private bool GetTempGridCell(int x, int z)
+    {
+        return (tempGrid[z] & (1L << x)) != 0L; // 第 index 位是否为 1
+    }
+
+    //修改临时地图的值
+    public void SetTempGridCell(int x, int z, bool value)
+    {
+        if (x < 0 || z < 0 || x >= gridSize || z >= gridSize)
+            return;
+
+        if (value)
+            tempGrid[z] |= (1L << x); // 将第 index 位设为 1
+        else
+            tempGrid[z] &= ~(1L << x); // 将第 index 位设为 0
+    }
 
     void changeBlock()
     {
@@ -260,19 +286,28 @@ public class MapManager : MonoBehaviour
             }
 
             // 切换 tempGrid 的状态
-            int index = x * gridSize + z;
-            tempGrid[index] = !tempGrid[index];
+            SetTempGridCell(x, z, !GetTempGridCell(x, z));
 
             // 更新 UI 预览
             GameObject selectedBlock = blockDictionary[(x, z)];
-            selectedBlock.SetActive(tempGrid[index]);
+            selectedBlock.SetActive(GetTempGridCell(x, z));
         }
     }
 
     // 确认修改，将 tempGrid 写入 mazeList[currentMaze]
     public void SaveChanges()
     {
-        Array.Copy(tempGrid, mazeList[currentMaze].grid, tempGrid.Length);
+        MazeData currentMazeData = mazeList[currentMaze];
+        Array.Copy(tempGrid, currentMazeData.grid, tempGrid.Length);
+
+        List<(int, int)> shortestPath = currentMazeData.FindShortestPath();
+        foreach (var i in shortestPath)
+        {
+            Debug.Log(i);
+        }
+        
+
+
         fileManager.SaveMazeData(mazeList[currentMaze]);
     }
 
