@@ -21,8 +21,16 @@ public class GameManager : MonoBehaviour
     public GameObject Canvas;
     public GameObject PlayPanel;
     public GameObject ManagePanel;
-    public MapManager mapManager;
     public GameObject EditPanel;
+    public GameObject PathPanel;
+
+    public MapManager mapManager;
+
+    public PathDrawer pathDrawer;
+    public GameObject PathRenderer;
+    public Text PathCountText;
+    public GameObject PathCount;
+    public GameObject NextAllPathButton;
 
     public GameObject NoPathErrorPanel;
 
@@ -83,6 +91,43 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Edit;
     }
 
+    public void OnPathButtonClicked()
+    {
+        if (currentState == GameState.Path)
+        {
+            return;
+        }
+        ResetPanel();
+        PathPanel.SetActive(true);
+        currentState= GameState.Path;
+        pathDrawer.ResetPath();
+        PathRenderer.SetActive(true);
+        PathCount.SetActive(false);
+        NextAllPathButton.SetActive(false);
+        ModText.text = "查看路径";
+    }
+
+    public void OnShortestPathButtonClicked()
+    {
+        pathDrawer.DrawShortestPath();
+        PathCount.SetActive(false);
+        NextAllPathButton.SetActive(false);
+        ModText.text = "最短路径";
+    }
+
+    public void OnAllPathButtonClicked()
+    {
+        PathCountText.text = pathDrawer.DrawAllPath();
+        ModText.text = "所有路径";
+        PathCount.SetActive(true);
+        NextAllPathButton.SetActive(true);
+    }
+
+    public void OnNextAllPathButtonClicked()
+    {
+        PathCountText.text = pathDrawer.NextAllPath();
+    }
+
     public void BackToManagePanel()
     {
         ResetPanel();
@@ -122,6 +167,8 @@ public class GameManager : MonoBehaviour
         PlayPanel.SetActive(false);
         ManagePanel.SetActive(false);
         EditPanel.SetActive(false);
+        PathPanel.SetActive(false);
+        PathRenderer.SetActive(false);
         mapManager.ResetMap();
     }
 

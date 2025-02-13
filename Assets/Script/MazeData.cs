@@ -12,8 +12,53 @@ public class MazeData
     public int size;
     public string fileName;
     public long[] grid; // 用 int 的二进制位表示 grid 的每一行
-    public List<(int, int)> shortestPath;
+    
+    // 用于序列化的二进制数据
+    public byte[] _shortestPath;
 
+    // 公开的路径属性，通过 getter 和 setter 维护 _shortestPath
+    public List<(int, int)> shortestPath
+    {
+        get
+        {
+            // 将 _shortestPath 转换为 List<(int, int)>
+            return _shortestPath == null ? new List<(int, int)>() : BinaryToPath(_shortestPath);
+        }
+        set
+        {
+            // 将 List<(int, int)> 转换为 _shortestPath
+            _shortestPath = PathToBinary(value);
+        }
+    }
+
+    // 将路径转换为二进制数据
+    private byte[] PathToBinary(List<(int, int)> path)
+    {
+        if (path == null || path.Count == 0)
+            return null;
+
+        var bytes = new byte[path.Count * 2]; // 每个坐标点用 2 个字节表示
+        for (int i = 0; i < path.Count; i++)
+        {
+            bytes[i * 2] = (byte)path[i].Item1; // x 坐标
+            bytes[i * 2 + 1] = (byte)path[i].Item2; // y 坐标
+        }
+        return bytes;
+    }
+
+    // 将二进制数据转换为路径
+    private List<(int, int)> BinaryToPath(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length == 0)
+            return new List<(int, int)>();
+
+        var path = new List<(int, int)>();
+        for (int i = 0; i < bytes.Length; i += 2)
+        {
+            path.Add((bytes[i], bytes[i + 1])); // 每 2 个字节表示一个坐标点
+        }
+        return path;
+    }
 
     // 通过 getter 返回起始点元组
     private (int, int) start
@@ -94,8 +139,6 @@ public class MazeData
         }
         return false;
     }
-
-
 
     private (int, int)[] directions = { (0, 1), (0, -1), (1, 0), (-1, 0) };
 
@@ -241,4 +284,47 @@ public class MazeData
         return path;
     }
 
+    // DFS 获取所有路径
+    public List<List<(int, int)>> GetAllPaths()
+    {
+        var allPaths = new List<List<(int, int)>>(); // 存储所有路径
+        var currentPath = new List<(int, int)>();   // 当前路径
+        var visited = new bool[size, size];         // 记录已访问的节点
+
+        DFS(start.Item1, start.Item2, visited, currentPath, allPaths);
+
+        return allPaths;
+    }
+
+    // DFS 递归函数
+    private void DFS(int x, int z, bool[,] visited, List<(int, int)> currentPath, List<List<(int, int)>> allPaths)
+    {
+        // 如果当前坐标是终点，将当前路径添加到结果中
+        if (x == end.Item1 && z == end.Item2)
+        {
+            allPaths.Add(new List<(int, int)>(currentPath)); // 复制当前路径
+            return;
+        }
+
+        // 标记当前节点为已访问
+        visited[z, x] = true;
+        currentPath.Add((x, z)); // 将当前节点加入路径
+
+        // 向四个方向递归搜索
+        foreach (var dir in directions)
+        {
+            int nx = x + dir.Item1;
+            int nz = z + dir.Item2;
+
+            // 检查新坐标是否在迷宫范围内、是否可通行、是否未访问
+            if (IsInBounds((nx, nz)) && !GetCell(nx, nz) && !visited[nz, nx])
+            {
+                DFS(nx, nz, visited, currentPath, allPaths); // 递归搜索
+            }
+        }
+
+        // 回溯：移除当前节点并标记为未访问
+        currentPath.RemoveAt(currentPath.Count - 1);
+        visited[z, x] = false;
+    }
 }

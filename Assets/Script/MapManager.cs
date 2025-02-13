@@ -132,9 +132,14 @@ public class MapManager : MonoBehaviour
     }
 
     // 将矩阵下标 (x, z) 转换为世界坐标
-    Vector3 GridToWorldPosition(int x, int z, int size)
+    public Vector3 GridToWorldPosition(int x, int z, int size)
     {
         return new Vector3(-size / 2 + x + 0.5f, 0.5f, -size / 2 + z + 0.5f);
+    }
+
+    public MazeData GetCurrentMazeData()
+    {
+        return mazeList[currentMaze];
     }
 
     // 放置方块
@@ -156,7 +161,7 @@ public class MapManager : MonoBehaviour
     //放置迷宫
     void LoadMaze()
     {
-        MazeData currentMazeData = mazeList[currentMaze];
+        MazeData currentMazeData = GetCurrentMazeData();
         Array.Copy(currentMazeData.grid, tempGrid, tempGrid.Length);
         for (int x = 0; x < currentMazeData.size; x++)
         {
@@ -189,7 +194,7 @@ public class MapManager : MonoBehaviour
 
         mazeDropDown.value = currentMaze;
 
-        mazeNameTextField.text = mazeList[currentMaze].name;
+        mazeNameTextField.text = GetCurrentMazeData().name;
 
         gameManager.currentState = GameState.Manage;
     }
@@ -197,18 +202,18 @@ public class MapManager : MonoBehaviour
     public void OnMazeNameTextFieldChanged()
     {
         // 避免递归调用
-        if (mazeNameTextField.text == mazeList[currentMaze].name)
+        if (mazeNameTextField.text == GetCurrentMazeData().name)
         {
             return;
         }
         if (mazeNameTextField.text == "")
         {
-            mazeNameTextField.text = mazeList[currentMaze].name;
+            mazeNameTextField.text = GetCurrentMazeData().name;
             return;
         }
 
-        mazeList[currentMaze].name = mazeNameTextField.text;
-        fileManager.SaveMazeData(mazeList[currentMaze]);
+        GetCurrentMazeData().name = mazeNameTextField.text;
+        fileManager.SaveMazeData(GetCurrentMazeData());
         RefreshMazeManagePanel();
     }
 
@@ -235,14 +240,13 @@ public class MapManager : MonoBehaviour
 
     public void DeleteCurrentMaze()
     {
-        fileManager.DeleteMazeData(mazeList[currentMaze]);
+        fileManager.DeleteMazeData(GetCurrentMazeData());
         currentMaze = fileManager.LoadAllMazes(mazeList);
         LoadMaze();
         RefreshMazeManagePanel();
     }
 
-
-    Vector3 GetMouseWorldPosition()
+    private Vector3 GetMouseWorldPosition()
     {
         Vector3 mousePos = Input.mousePosition;
         mousePos.z = Mathf.Abs(mainCamera.transform.position.y); // y轴高度
@@ -280,7 +284,7 @@ public class MapManager : MonoBehaviour
             int z = Mathf.FloorToInt(worldPos.z) + gridSize/2;
 
             // 边界检查
-            if (!mazeList[currentMaze].IsInBounds((x, z)) || mazeList[currentMaze].IsStratOrEnd((x, z)))
+            if (!GetCurrentMazeData().IsInBounds((x, z)) || GetCurrentMazeData().IsStratOrEnd((x, z)))
             {
                 return;
             }
@@ -294,10 +298,10 @@ public class MapManager : MonoBehaviour
         }
     }
 
-    // 确认修改，将 tempGrid 写入 mazeList[currentMaze]
+    // 确认修改，将 tempGrid 写入 GetCurrentMazeData()
     public bool SaveChanges()
     {
-        MazeData currentMazeData = mazeList[currentMaze];
+        MazeData currentMazeData = GetCurrentMazeData();
         long[] temp = currentMazeData.grid;
         currentMazeData.grid = tempGrid;
         tempGrid = temp;
@@ -315,7 +319,7 @@ public class MapManager : MonoBehaviour
         // 如果存在通路，则保存
         Array.Copy(currentMazeData.grid, tempGrid, tempGrid.Length);
         currentMazeData.shortestPath = shortestPath;
-        fileManager.SaveMazeData(mazeList[currentMaze]);
+        fileManager.SaveMazeData(GetCurrentMazeData());
         return true;
     }
 
