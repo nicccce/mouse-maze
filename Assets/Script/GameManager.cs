@@ -24,6 +24,9 @@ public class GameManager : MonoBehaviour
     public MapManager mapManager;
     public GameObject EditPanel;
 
+    public GameObject NoPathErrorPanel;
+
+
     private Text ModText;
 
     void Start()
@@ -91,12 +94,18 @@ public class GameManager : MonoBehaviour
 
     public void OnSaveButtonClicked()
     {
-        mapManager.SaveChanges();
-        ResetPanel();
-        ManagePanel.SetActive(true);
-        mapManager.RefreshMazeManagePanel();
-        ModText.text = "管理迷宫";
-        currentState = GameState.Manage;
+        if (mapManager.SaveChanges())
+        {
+            ResetPanel();
+            ManagePanel.SetActive(true);
+            mapManager.RefreshMazeManagePanel();
+            ModText.text = "管理迷宫";
+            currentState = GameState.Manage;
+        }
+        else
+        {
+            NoPathErrorPanel.SetActive(true);
+        }
     }
 
     public void OnAbortButtonClicked()

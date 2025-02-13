@@ -295,20 +295,28 @@ public class MapManager : MonoBehaviour
     }
 
     // 确认修改，将 tempGrid 写入 mazeList[currentMaze]
-    public void SaveChanges()
+    public bool SaveChanges()
     {
         MazeData currentMazeData = mazeList[currentMaze];
-        Array.Copy(tempGrid, currentMazeData.grid, tempGrid.Length);
+        long[] temp = currentMazeData.grid;
+        currentMazeData.grid = tempGrid;
+        tempGrid = temp;
 
         List<(int, int)> shortestPath = currentMazeData.FindShortestPath();
-        foreach (var i in shortestPath)
+        // 如果没有通路
+        if (shortestPath.Count == 0)
         {
-            Debug.Log(i);
+            //回溯
+            tempGrid = currentMazeData.grid;
+            currentMazeData.grid = temp;
+            return false;
         }
-        
 
-
+        // 如果存在通路，则保存
+        Array.Copy(currentMazeData.grid, tempGrid, tempGrid.Length);
+        currentMazeData.shortestPath = shortestPath;
         fileManager.SaveMazeData(mazeList[currentMaze]);
+        return true;
     }
 
 }

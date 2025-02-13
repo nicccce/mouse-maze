@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.Overlays;
 using UnityEngine;
+using System.Numerics;
 
 [System.Serializable]
 public class MazeData
@@ -11,6 +12,7 @@ public class MazeData
     public int size;
     public string fileName;
     public long[] grid; // 用 int 的二进制位表示 grid 的每一行
+    public List<(int, int)> shortestPath;
 
 
     // 通过 getter 返回起始点元组
@@ -64,8 +66,36 @@ public class MazeData
     // 2. 若连通，使用 A* 搜索
     public List<(int, int)> FindShortestPath()
     {
-        return AStar();
+        // 计算障碍比例，决定最短路方案
+        if (GetObstacleRatioMoreThan(0.5))
+        {
+            return BFS();
+        }
+        else 
+        {
+            return AStar();
+        }
     }
+
+
+
+    // 计算迷宫中墙壁的比例是否大于某个数Brian Kernighan
+    private bool GetObstacleRatioMoreThan(double ratio)
+    {
+        int count = 0, maxcount = (int)(ratio * size * size);
+        foreach (var num in grid)
+        {
+            long n = num;
+            while (n != 0)
+            {
+                n &= (n - 1); // 每次消去最右侧的 1
+                if (++count > maxcount) return true;
+            }
+        }
+        return false;
+    }
+
+
 
     private (int, int)[] directions = { (0, 1), (0, -1), (1, 0), (-1, 0) };
 
@@ -116,7 +146,7 @@ public class MazeData
     {
         public int Compare(((int, int), int) x, ((int, int), int) y)
         {
-            return x.Item2.CompareTo(y.Item2);
+            return y.Item2.CompareTo(x.Item2);
         }
     }
 
@@ -148,6 +178,7 @@ public class MazeData
         Dictionary<(int, int), int> fScore = new Dictionary<(int, int), int>();
 
         // 初始化起点
+        parent[start] = (-1, -1);  // 标记起点的父节点为空
         openSet.Enqueue((start, 0));
         gScore[start] = 0;
         fScore[start] = ManhattanDistance(start, end);
@@ -174,7 +205,7 @@ public class MazeData
                 (int, int) neighbor = (current.Item1 + dir.Item1, current.Item2 + dir.Item2);
 
                 // 检查是否越界或是墙壁
-                if (!IsInBounds(neighbor) || !GetCell(neighbor.Item1, neighbor.Item2))
+                if (!IsInBounds(neighbor) || GetCell(neighbor.Item1, neighbor.Item2))
                     continue;
 
                 int tentativeGScore = gScore[current] + 1; // 代价 +1
