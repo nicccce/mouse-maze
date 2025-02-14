@@ -8,6 +8,7 @@ public enum GameState
     Default,    // 戏默认界面
     Play,       // 游戏进行中
     Pause,      // 游戏暂停
+    Win,        //游戏胜利
     Manage,     // 管理迷宫
     Edit,     // 修改迷宫
     Path,       // 查看路径
@@ -25,6 +26,7 @@ public class GameManager : MonoBehaviour
     public GameObject PathPanel;
 
     public MapManager mapManager;
+    public PlayManager playManager;
 
     public PathDrawer pathDrawer;
     public GameObject PathRenderer;
@@ -55,19 +57,20 @@ public class GameManager : MonoBehaviour
 
     public void OnStartButtonClicked()
     {
-        if (currentState == GameState.Play || currentState == GameState.Pause)
+        if (currentState == GameState.Play || currentState == GameState.Pause || currentState == GameState.Win)
         {
             return;
         }
         ResetPanel();
         PlayPanel.SetActive(true);
         currentState = GameState.Play;
+        playManager.Initialize();
         ModText.text = "游戏中";
     }
 
     public void OnManageButtonClicked()
     {
-        if (currentState == GameState.Manage || currentState == GameState.Edit)
+        if (currentState == GameState.Manage || currentState == GameState.Edit || currentState == GameState.Win)
         {
             return;
         }
@@ -80,6 +83,10 @@ public class GameManager : MonoBehaviour
 
     public void ExitClicked()
     {
+        if (currentState == GameState.Win)
+        {
+            return;
+        }
         Application.Quit();
     }
 
@@ -93,7 +100,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPathButtonClicked()
     {
-        if (currentState == GameState.Path)
+        if (currentState == GameState.Path || currentState == GameState.Win)
         {
             return;
         }

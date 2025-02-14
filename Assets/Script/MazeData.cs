@@ -63,12 +63,12 @@ public class MazeData
     }
 
     // 通过 getter 返回起始点元组
-    private (int, int) start
+    public (int, int) start
     {
         get => (size / 2 - 1, size / 2);
     }
     // 通过 getter 返回终点元组
-    private (int, int) end
+    public (int, int) end
     {
         get => (size - 1, 0);
     }

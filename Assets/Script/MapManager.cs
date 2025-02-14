@@ -45,13 +45,14 @@ public class MapManager : MonoBehaviour
 
         //…˙≥…√‘π¨
         LoadMaze();
+
         AddCheese();
     }
 
     public GameObject cheese;
     public void AddCheese()
     {
-        GameObject block = Instantiate(cheese, GridToWorldPosition(gridSize -1, 0, gridSize), Quaternion.identity);
+        GameObject block = Instantiate(cheese, GridToWorldPosition(GetCurrentMazeData().end.Item1, GetCurrentMazeData().end.Item2,  gridSize) + Vector3.down * 0.3f, Quaternion.identity);
 
         Vector3 originalSize = block.GetComponent<Renderer>().bounds.size;
         block.transform.localScale = new Vector3(1f / originalSize.x, 1f / originalSize.y, 1f / originalSize.z);
@@ -190,6 +191,7 @@ public class MapManager : MonoBehaviour
                 }
             }
         }
+
     }
 
     public void RefreshMazeManagePanel()
