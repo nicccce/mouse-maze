@@ -171,6 +171,7 @@ public class GameManager : MonoBehaviour
 
     public void ResetPanel()
     {
+        ModText.text = "";
         PlayPanel.SetActive(false);
         ManagePanel.SetActive(false);
         EditPanel.SetActive(false);

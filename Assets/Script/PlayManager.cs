@@ -183,11 +183,11 @@ public class PlayManager : MonoBehaviour
         // 如果按键被按下，且目标位置在迷宫内且可通行
         if (dir != Vector3.zero && maze.IsInBounds(tempPosition) && !maze.GetCell(tempPosition.Item1, tempPosition.Item2))
         {
-            mouseTransform.rotation = Quaternion.LookRotation(dir); // 物体面朝方向
+            mouseTransform.rotation = Quaternion.LookRotation(dir)*Quaternion.Euler(Vector3.down * 120f); // 物体面朝方向
+
 
             // 开始移动
             isMoving = true;
-            armature.rotation = Quaternion.Euler(-90, 0, 0); // 设置旋转
             animationComponent.Play("run"); // 播放"Run"动画
             StartCoroutine(MoveToPosition(tempPosition)); // 使用协程实现平滑移动
         }
