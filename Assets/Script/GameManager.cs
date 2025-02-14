@@ -124,7 +124,21 @@ public class GameManager : MonoBehaviour
 
     public void OnAllPathButtonClicked()
     {
-        PathCountText.text = pathDrawer.DrawAllPath();
+        // 获取路径的文本
+        string pathText = pathDrawer.DrawAllPath();
+
+        // 设置文本内容
+        PathCountText.text = pathText;
+
+        // 动态调整字体大小
+        if (pathText.Length > 6)
+        {
+            PathCountText.fontSize = 15;
+        }
+        else
+        {
+            PathCountText.fontSize = 32;
+        }
         ModText.text = "所有路径";
         PathCount.SetActive(true);
         NextAllPathButton.SetActive(true);
@@ -132,7 +146,21 @@ public class GameManager : MonoBehaviour
 
     public void OnNextAllPathButtonClicked()
     {
-        PathCountText.text = pathDrawer.NextAllPath();
+        // 获取路径的文本
+        string pathText = pathDrawer.NextAllPath();
+
+        // 设置文本内容
+        PathCountText.text = pathText;
+
+        // 动态调整字体大小
+        if (pathText.Length > 6)
+        {
+            PathCountText.fontSize = 15;
+        }
+        else
+        {
+            PathCountText.fontSize = 32;
+        }
     }
 
     public void BackToManagePanel()

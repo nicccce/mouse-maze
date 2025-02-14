@@ -6,6 +6,8 @@ using UnityEngine;
 using System.Numerics;
 using System.Linq;
 using UnityEngine.UIElements;
+using System.Diagnostics;
+using System.Threading;
 
 [System.Serializable]
 public class MazeData
@@ -78,6 +80,7 @@ public class MazeData
     {
         this.size = size;
         grid = new long[size]; // 默认全 false（未激活）
+        shortestPath = FindShortestPath();
     }
 
     public bool GetCell(int x, int z)
@@ -311,56 +314,74 @@ public class MazeData
     }
 
     // 迭代 DFS 获取所有路径
-    public List<List<(int, int)>> GetAllPaths(int maxWidth, int maxDepth)
+    // 添加超时参数的版本
+    public List<List<(int, int)>> GetAllPaths(int maxWidth, int maxDepth, TimeSpan timeout)
     {
         var allPaths = new List<List<(int, int)>>(); // 存储所有路径
         var stack = new Stack<(int x, int z, List<(int, int)> path, long[] visited, int depth)>();
-        stack.Push((start.Item1, start.Item2, new List<(int, int)>(), CreateVisitedArray(),0));
+        stack.Push((start.Item1, start.Item2, new List<(int, int)>(), CreateVisitedArray(), 0));
 
-        while (stack.Count > 0)
+        var cts = new CancellationTokenSource(timeout);
+        var token = cts.Token;
+        int count = 0;
+        try
         {
-            var (x, z, path, visited, depth) = stack.Pop();
-
-            // 如果当前坐标是终点，将当前路径添加到结果中
-            if (x == end.Item1 && z == end.Item2)
+            while (stack.Count > 0)
             {
-                var fullPath = new List<(int, int)>(path) { (x, z) };
-                allPaths.Add(fullPath);
-
-                // 如果路径数量达到上限，停止搜索
-                if (allPaths.Count >= maxWidth)
-                {
-                    break;
+                // 每100次循环时检查是否超时
+                if (count % 100 == 0)
+                { 
+                    token.ThrowIfCancellationRequested(); 
                 }
-                continue;
-            }
-            // 如果当前路径深度超过限制，放弃该路径
-            if (depth >= maxDepth)
-            {
-                continue;
-            }
-            // 标记当前节点为已访问
-            MarkVisited(visited, x, z);
-            path.Add((x, z)); // 将当前节点加入路径
 
-            // 向四个方向递归搜索
-            foreach (var dir in directions)
-            {
-                int nx = x + dir.Item1;
-                int nz = z + dir.Item2;
-
-                // 检查新坐标是否在迷宫范围内、是否可通行、是否未访问
-                if (IsInBounds((nx, nz)) && !GetCell(nx, nz) && !IsVisited(visited, nx, nz))
+                var (x, z, path, visited, depth) = stack.Pop();
+                count++;
+                // 如果当前坐标是终点，将当前路径添加到结果中
+                if (x == end.Item1 && z == end.Item2)
                 {
-                    // 复制 visited 数组
-                    var newVisited = new long[visited.Length];
-                    Array.Copy(visited, newVisited, visited.Length);
+                    var fullPath = new List<(int, int)>(path) { (x, z) };
+                    allPaths.Add(fullPath);
 
-                    stack.Push((nx, nz, new List<(int, int)>(path), newVisited, depth + 1));
+                    // 如果路径数量达到上限，停止搜索
+                    if (allPaths.Count >= maxWidth)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+
+                // 如果当前路径深度超过限制，放弃该路径
+                if (depth >= maxDepth)
+                {
+                    continue;
+                }
+
+                // 标记当前节点为已访问
+                MarkVisited(visited, x, z);
+                path.Add((x, z)); // 将当前节点加入路径
+
+                // 向四个方向递归搜索
+                foreach (var dir in directions)
+                {
+                    int nx = x + dir.Item1;
+                    int nz = z + dir.Item2;
+
+                    // 检查新坐标是否在迷宫范围内、是否可通行、是否未访问
+                    if (IsInBounds((nx, nz)) && !GetCell(nx, nz) && !IsVisited(visited, nx, nz))
+                    {
+                        // 复制 visited 数组
+                        var newVisited = new long[visited.Length];
+                        Array.Copy(visited, newVisited, visited.Length);
+
+                        stack.Push((nx, nz, new List<(int, int)>(path), newVisited, depth + 1));
+                    }
                 }
             }
+        }catch(Exception) { }
+        finally
+        {
+            cts.Dispose();
         }
-
         return allPaths;
     }
 }

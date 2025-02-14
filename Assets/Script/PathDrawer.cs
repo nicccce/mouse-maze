@@ -1,5 +1,7 @@
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PathDrawer : MonoBehaviour
@@ -30,7 +32,15 @@ public class PathDrawer : MonoBehaviour
     public string DrawAllPath()
     {
         allPathIndex = 0;  // 重置路径索引为0
-        allPaths = mapManager.GetCurrentMazeData().GetAllPaths(100, 200);  // 获取所有路径
+        allPaths = mapManager.GetCurrentMazeData().GetAllPaths(
+                maxWidth: 100,
+                maxDepth: 200,
+                timeout: TimeSpan.FromSeconds(2)
+            );  // 获取所有路径
+        if (allPaths.Count == 0)
+        {
+            return "稀疏图，无法求取";
+        }
         DrawPolyline(allPaths[0]);  // 绘制第一条路径
         return $"{allPathIndex + 1}/{allPaths.Count}";  // 返回当前路径索引与总路径数量
     }
@@ -38,6 +48,10 @@ public class PathDrawer : MonoBehaviour
     // 绘制下一条路径
     public string NextAllPath()
     {
+        if (allPaths.Count == 0)
+        {
+            return "稀疏图，无法求取";
+        }
         // 更新路径索引，循环显示路径
         allPathIndex = (allPathIndex + 1) % allPaths.Count;
         DrawPolyline(allPaths[allPathIndex]);  // 绘制当前索引对应的路径
