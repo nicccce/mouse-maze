@@ -30,7 +30,7 @@ public class PathDrawer : MonoBehaviour
     public string DrawAllPath()
     {
         allPathIndex = 0;  // 重置路径索引为0
-        allPaths = mapManager.GetCurrentMazeData().GetAllPaths();  // 获取所有路径
+        allPaths = mapManager.GetCurrentMazeData().GetAllPaths(100, 200);  // 获取所有路径
         DrawPolyline(allPaths[0]);  // 绘制第一条路径
         return $"{allPathIndex + 1}/{allPaths.Count}";  // 返回当前路径索引与总路径数量
     }

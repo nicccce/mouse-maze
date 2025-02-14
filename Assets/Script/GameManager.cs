@@ -162,7 +162,7 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Manage;
     }
 
-    void ResetPanel()
+    public void ResetPanel()
     {
         PlayPanel.SetActive(false);
         ManagePanel.SetActive(false);

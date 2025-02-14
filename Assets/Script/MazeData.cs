@@ -4,6 +4,8 @@ using Unity.VisualScripting;
 using UnityEditor.Overlays;
 using UnityEngine;
 using System.Numerics;
+using System.Linq;
+using UnityEngine.UIElements;
 
 [System.Serializable]
 public class MazeData
@@ -284,47 +286,81 @@ public class MazeData
         return path;
     }
 
-    // DFS 获取所有路径
-    public List<List<(int, int)>> GetAllPaths()
+    // 使用多个 long 存储访问标记
+    private long[] CreateVisitedArray()
     {
-        var allPaths = new List<List<(int, int)>>(); // 存储所有路径
-        var currentPath = new List<(int, int)>();   // 当前路径
-        var visited = new bool[size, size];         // 记录已访问的节点
-
-        DFS(start.Item1, start.Item2, visited, currentPath, allPaths);
-
-        return allPaths;
+        return new long[(size * size + 63) / 64]; // 每个 long 存储 64 个点
     }
 
-    // DFS 递归函数
-    private void DFS(int x, int z, bool[,] visited, List<(int, int)> currentPath, List<List<(int, int)>> allPaths)
+    // 检查某个点是否已访问
+    private bool IsVisited(long[] visited, int x, int z)
     {
-        // 如果当前坐标是终点，将当前路径添加到结果中
-        if (x == end.Item1 && z == end.Item2)
+        int index = x + z * size;
+        int arrayIndex = index / 64;
+        int bitIndex = index % 64;
+        return (visited[arrayIndex] & (1L << bitIndex)) != 0;
+    }
+
+    // 标记某个点为已访问
+    private void MarkVisited(long[] visited, int x, int z)
+    {
+        int index = x + z * size;
+        int arrayIndex = index / 64;
+        int bitIndex = index % 64;
+        visited[arrayIndex] |= (1L << bitIndex);
+    }
+
+    // 迭代 DFS 获取所有路径
+    public List<List<(int, int)>> GetAllPaths(int maxWidth, int maxDepth)
+    {
+        var allPaths = new List<List<(int, int)>>(); // 存储所有路径
+        var stack = new Stack<(int x, int z, List<(int, int)> path, long[] visited, int depth)>();
+        stack.Push((start.Item1, start.Item2, new List<(int, int)>(), CreateVisitedArray(),0));
+
+        while (stack.Count > 0)
         {
-            allPaths.Add(new List<(int, int)>(currentPath)); // 复制当前路径
-            return;
-        }
+            var (x, z, path, visited, depth) = stack.Pop();
 
-        // 标记当前节点为已访问
-        visited[z, x] = true;
-        currentPath.Add((x, z)); // 将当前节点加入路径
-
-        // 向四个方向递归搜索
-        foreach (var dir in directions)
-        {
-            int nx = x + dir.Item1;
-            int nz = z + dir.Item2;
-
-            // 检查新坐标是否在迷宫范围内、是否可通行、是否未访问
-            if (IsInBounds((nx, nz)) && !GetCell(nx, nz) && !visited[nz, nx])
+            // 如果当前坐标是终点，将当前路径添加到结果中
+            if (x == end.Item1 && z == end.Item2)
             {
-                DFS(nx, nz, visited, currentPath, allPaths); // 递归搜索
+                var fullPath = new List<(int, int)>(path) { (x, z) };
+                allPaths.Add(fullPath);
+
+                // 如果路径数量达到上限，停止搜索
+                if (allPaths.Count >= maxWidth)
+                {
+                    break;
+                }
+                continue;
+            }
+            // 如果当前路径深度超过限制，放弃该路径
+            if (depth >= maxDepth)
+            {
+                continue;
+            }
+            // 标记当前节点为已访问
+            MarkVisited(visited, x, z);
+            path.Add((x, z)); // 将当前节点加入路径
+
+            // 向四个方向递归搜索
+            foreach (var dir in directions)
+            {
+                int nx = x + dir.Item1;
+                int nz = z + dir.Item2;
+
+                // 检查新坐标是否在迷宫范围内、是否可通行、是否未访问
+                if (IsInBounds((nx, nz)) && !GetCell(nx, nz) && !IsVisited(visited, nx, nz))
+                {
+                    // 复制 visited 数组
+                    var newVisited = new long[visited.Length];
+                    Array.Copy(visited, newVisited, visited.Length);
+
+                    stack.Push((nx, nz, new List<(int, int)>(path), newVisited, depth + 1));
+                }
             }
         }
 
-        // 回溯：移除当前节点并标记为未访问
-        currentPath.RemoveAt(currentPath.Count - 1);
-        visited[z, x] = false;
+        return allPaths;
     }
 }

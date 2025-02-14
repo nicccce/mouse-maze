@@ -45,6 +45,19 @@ public class MapManager : MonoBehaviour
 
         //…˙≥…√‘π¨
         LoadMaze();
+        AddCheese();
+    }
+
+    public GameObject cheese;
+    public void AddCheese()
+    {
+        GameObject block = Instantiate(cheese, GridToWorldPosition(gridSize -1, 0, gridSize), Quaternion.identity);
+
+        Vector3 originalSize = block.GetComponent<Renderer>().bounds.size;
+        block.transform.localScale = new Vector3(1f / originalSize.x, 1f / originalSize.y, 1f / originalSize.z);
+
+        block.SetActive(true);
+        block.transform.parent = this.transform;
     }
 
     public void ResetMap()
