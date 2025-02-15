@@ -168,6 +168,8 @@ public class MapManager : MonoBehaviour
         block.name = $"block({x},{z})";
 
         block.SetActive(false); // 默认为非激活状态
+
+        // 缓存入blockDictionary
         blockDictionary[(x,z)] = block;
         block.transform.parent = this.transform;
     }

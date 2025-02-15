@@ -241,7 +241,7 @@ public class MazeData
             {
                 continue;
             }
-
+            // 标记为已经访问过
             done.Add(current);
 
             // 如果到达终点，返回最短路径
