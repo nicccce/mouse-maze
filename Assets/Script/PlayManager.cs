@@ -43,6 +43,7 @@ public class PlayManager : MonoBehaviour
         maze = mapManager.GetCurrentMazeData();
         mousePosition = maze.start;
         mouseTransform.position = getWorldPositonFromMousePosition(mousePosition);
+        timer = 0;
     }
 
     void Update()
